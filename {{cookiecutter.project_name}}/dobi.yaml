@@ -1,0 +1,78 @@
+meta:
+    project: {{cookiecutter.project_name}}
+    default: binary
+
+env=vars:
+    variables: [VERSION=0.0.1]
+
+
+mount=source:
+    bind: .
+    path: /go/src/{{cookiecutter.project_path}}
+
+mount=dist:
+    bind: ./dist/bin/
+    path: /go/bin/
+
+
+image=binary-builder:
+    image: cescoferraro/golang
+    tags: ["latest"]
+    pull: "always"
+
+job=binary:
+    use: binary-builder
+    mounts: [source, dist]
+    working-dir: /go/src/{{cookiecutter.project_path}}
+    command: go build -i -o /go/bin/goapp
+    
+image=production:
+    image: cescoferraro/{{cookiecutter.project_name}}
+    tags: ["{env.VERSION:}"]
+    context: .
+    dockerfile: Dockerfile
+    depends: [binary, vars]
+
+
+job=preview:
+    use: production
+    description: "Preview the production image"
+    
+    
+job=watch:
+    use: binary-builder
+    interactive: true
+    net-mode: host
+    working-dir: /go/src/{{cookiecutter.project_path}}
+    depends: [vars]
+    command: reflex -r '\.go' -s -- go run main.go
+    mounts: [source]
+    description: "Watch for code changes and run main file"
+
+job=deps:
+    use: binary-builder
+    mounts: [source]
+    command: "glide install"
+    sources: ['glide.yaml', 'glide.lock']
+    artifact: vendor/
+    description: "Install go dependencies"
+
+
+job=lint:
+    use: binary-builder
+    mounts: [source]
+    command: docker/script/lint.sh
+    description: "lint go"
+
+job=fmt:
+    use: binary-builder
+    mounts: [source]
+    command: docker/script/fmt.sh
+    description: "fmt go"
+
+
+job=vet:
+    use: binary-builder
+    mounts: [source]
+    command: docker/script/vet.sh
+    description: "vet go"

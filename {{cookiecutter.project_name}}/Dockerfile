@@ -1,0 +1,4 @@
+FROM alpine:3.4
+RUN apk add --no-cache ca-certificates apache2-utils
+ADD ./dist/bin/goapp /bin/goapp
+CMD ["/bin/goapp"]

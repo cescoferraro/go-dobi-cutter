@@ -1,0 +1,4 @@
+package: {{cookiecutter.project_path}}
+import:
+- package: github.com/spf13/cobra
+- package: github.com/spf13/viper
