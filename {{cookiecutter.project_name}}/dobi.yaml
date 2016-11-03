@@ -52,27 +52,29 @@ job=watch:
 job=deps:
     use: binary-builder
     mounts: [source]
+    working-dir: /go/src/{{cookiecutter.project_path}}
+    interactive: true
+    user: "{user.uid}"
     command: "glide install"
-    sources: ['glide.yaml', 'glide.lock']
-    artifact: vendor/
     description: "Install go dependencies"
+
 
 
 job=lint:
     use: binary-builder
+    working-dir: /go/src/{{cookiecutter.project_path}}
     mounts: [source]
-    command: docker/script/lint.sh
+    user: "{user.uid}"
+    command: golint
     description: "lint go"
+
+
 
 job=fmt:
     use: binary-builder
+    working-dir: /go/src/{{cookiecutter.project_path}}
     mounts: [source]
-    command: docker/script/fmt.sh
-    description: "fmt go"
+    user: "{user.uid}"
+    command: go fmt
+    description: "go fmt"
 
-
-job=vet:
-    use: binary-builder
-    mounts: [source]
-    command: docker/script/vet.sh
-    description: "vet go"
